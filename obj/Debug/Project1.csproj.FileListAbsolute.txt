@@ -1,0 +1,7 @@
+C:\Users\jmidr\source\repos\Algorithms\Project1\obj\Debug\Project1.csprojAssemblyReference.cache
+C:\Users\jmidr\source\repos\Algorithms\Project1\obj\Debug\Project1.csproj.CoreCompileInputs.cache
+C:\Users\jmidr\source\repos\Algorithms\Project1\bin\Debug\Project1.exe.config
+C:\Users\jmidr\source\repos\Algorithms\Project1\bin\Debug\Project1.exe
+C:\Users\jmidr\source\repos\Algorithms\Project1\bin\Debug\Project1.pdb
+C:\Users\jmidr\source\repos\Algorithms\Project1\obj\Debug\Project1.exe
+C:\Users\jmidr\source\repos\Algorithms\Project1\obj\Debug\Project1.pdb
