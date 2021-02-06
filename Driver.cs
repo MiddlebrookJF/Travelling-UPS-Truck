@@ -8,10 +8,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 using System.Windows;
 
 namespace Project1
@@ -30,17 +27,17 @@ namespace Project1
 
 			Console.WriteLine("Please input the points preceded by a line containing the number of points:");
 
-			int inputSize = Int32.Parse(Console.ReadLine());    //how long our input is (first line)
-			Stopwatch sw = new Stopwatch();                     //creates sw, starts stopwatch after first line is read
+			int inputSize = Int32.Parse(Console.ReadLine());                        //how long our input is (first line)
+			Stopwatch sw = Stopwatch.StartNew();									//starts stopwatch sw after first line is read
 
-			Point[] inputPoints = new Point[inputSize];         //array of (x,y) points representing our input
-			int[] optimalRoute = new int[inputSize];			//stores indexes of points in optimal route order
-			double optimalDistance;                                //stores a running optimal route distance
-			double[,] distanceTable = new double[inputSize, inputSize];     //a 2d array storing the distances from each point to every other point
-			Point zero = new Point(0, 0);
+			Point[] inputPoints = new Point[inputSize + 1];							//array of (x,y) points representing our input
+			int[] optimalRoute = new int[inputSize];								//stores indexes of points in optimal route order
+			double optimalDistance = 0;												//stores a running optimal route distance
+			double[,] distanceTable = new double[inputSize + 1, inputSize + 1];		//a 2d array storing the distances from each point to every other point
+			inputPoints[0] = new Point(0, 0);										//Creates a (0,0) point at inputPoints[0]
 
 			//Read input from the console to get the points which we will use; put them in array of Points
-			for (int i = 0; i < inputSize; i++)
+			for (int i = 1; i < inputSize + 1; i++)
 			{
 				string instring = Console.ReadLine();
 				string[] values = instring.Split(' ');
@@ -50,72 +47,46 @@ namespace Project1
 			}
 
 			//Fill distanceTable, eg. distanceTable[3,7] is distance from point 3 to point 7 and equal to distanceTable[7,3]
-			for (int i = 0; i < inputSize; i++)
+			for (int i = 0; i < inputSize + 1; i++)
 			{
-				for (int j = 0; j < inputSize; j++)
+				for (int j = 0; j < inputSize + 1; j++)
 				{
 					distanceTable[i, j] = DistanceFrom(inputPoints[i], inputPoints[j]);
-					Console.WriteLine($"Cell at {i}, {j} is {distanceTable[i, j]}");
 				}
 			}
 
 
-			int numOfRoutes = FindFactorial(inputSize);			//Find how many times to call NextPermutation
+			int numOfRoutes = FindFactorial(inputSize);								//Find how many times to call NextPermutation
 			int[] currentPermutation = new int[inputSize];		
-			for (int i = 0; i < inputSize; i++)					//Find first permutation to start the for loop
-				currentPermutation[i] = i;
+			for (int i = 0; i < inputSize; i++)										//Find first permutation to start the for loop
+				currentPermutation[i] = i + 1;
 
 			//Find first total distance to compare to within for loop
-			optimalDistance = DistanceFrom(zero, inputPoints[currentPermutation[0]]);
+			optimalDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);  //From (0,0) to point at index 0
 			for (int i = 0; i < inputSize - 1; i++)
 			{
-				double sumDistance = distanceTable[currentPermutation[i], currentPermutation[i + 1]];
-				optimalDistance += sumDistance;
+				optimalDistance += distanceTable[currentPermutation[i], currentPermutation[i + 1]];
 			}
-			double FourToZero = DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], zero);
-			optimalDistance += FourToZero;
-			//Console.WriteLine(optimalDistance);
+			optimalDistance += DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], inputPoints[0]);    //From point at last index to (0,0)
 
-
-			//Generate permutations using a method that permutes based on int values
+			//Generate permutations, then find the distances between every point (starting and ending at (0,0)) for each one
 			for (int perm = 0; perm < numOfRoutes; perm++)
 			{
 				currentPermutation = NextPermutation(currentPermutation);
-				//for (int i = 0; i < inputSize; i++)
-					//Console.WriteLine(currentPermutation[i]);
+				if (currentPermutation[0] > currentPermutation[inputSize - 1])
+					continue;
 				double currentDistance = 0;
 
-				string sRoute = "";
-				for (int j = 0; j < inputSize; j++)
-					sRoute += currentPermutation[j];
-
-				currentDistance += DistanceFrom(zero, inputPoints[currentPermutation[0]]);  //From (0,0) to point at index 0
-				//Console.WriteLine($"Current distance += distanceTable[{zero}, {inputPoints[currentPermutation[0]]}] = {DistanceFrom(zero, inputPoints[currentPermutation[0]])}, index {currentPermutation[0]}");
-				for (int i = 0; i < inputSize - 2; i++)
+				currentDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);  //From (0,0) to point at index 0
+				for (int i = 0; i < inputSize - 1; i++)
 				{
 					//Add distance between points at currentPerm[i] and currentPerm[i+1] by accessing table
-					//Console.WriteLine($"Current distance += distanceTable[{currentPermutation[i]}, {currentPermutation[i + 1]}] = {distanceTable[currentPermutation[i], currentPermutation[i + 1]]}");
 					currentDistance += distanceTable[currentPermutation[i], currentPermutation[i + 1]];
-					//Console.ReadKey();
+					if (currentDistance > optimalDistance)
+						break;
 				}
-				currentDistance += DistanceFrom(inputPoints[currentPermutation[ inputSize - 1 ]], zero);    //From (0,0) to point at last index
-				//Console.WriteLine($"Current distance += distanceTable[{inputPoints[currentPermutation[inputSize - 1]]}, {zero}] = {DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], zero)}");
+				currentDistance += DistanceFrom(inputPoints[currentPermutation[ inputSize - 1 ]], inputPoints[0]);    //From point at last index to (0,0)
 
-
-
-				//if(currentDistance == 28000)
-				//{
-				//Console.WriteLine($"\n\n\n{currentDistance} = {DistanceFrom(zero, inputPoints[currentPermutation[0]])}");
-				//Console.WriteLine($"Index 0 of current perm: {currentPermutation[0]}, Index input size - 1 of current perm: {currentPermutation[inputSize - 1]} input Size - 1: {inputSize - 1}");
-				//Console.WriteLine($"currentDistance += DistanceFrom(zero, inputPoints[currentPermutation[0]])");
-				//Console.WriteLine($"{currentDistance} = {DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], zero)}");
-				//Console.WriteLine($"currentDistance += DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], zero)");
-				//string sRoute = "";
-				//for (int j = 0; j < inputSize; j++)
-				//	sRoute += $"{currentPermutation[j]},";
-				//Console.WriteLine(sRoute);
-				//Console.ReadLine();
-				//}
 
 				if (currentDistance < optimalDistance)
 				{
@@ -123,22 +94,20 @@ namespace Project1
 					Array.Copy(currentPermutation, optimalRoute, inputSize);
 				}
 
-			}
+			}//end for loop which permutes through every route
 
-			sw.Stop();      //stops stopwatch
+			sw.Stop();																//stops stopwatch before writing to the console
 
-			//Output statistics, including if statement to warn the user if there is no optimal route found.
-			Console.WriteLine($"Number of routes: {numOfRoutes}");
-			if (optimalDistance < 0)
-				Console.WriteLine("Error: no optimal distance calculated.");
-			Console.WriteLine($"\nShortest route: {optimalDistance.ToString("N2")}");
 
-			string sOptimalRoute = "";
+			Console.WriteLine($"\nNumber of routes: {numOfRoutes}");				//output statistics
+			Console.WriteLine($"Shortest route: {optimalDistance.ToString("N2")}");
+
+			string sOptimalRoute = "0 ";
 			foreach (int i in optimalRoute)
-				sOptimalRoute += i.ToString() + " ";
+				sOptimalRoute += (i).ToString() + " ";
 			Console.WriteLine($"Optimal route: {sOptimalRoute}");
 
-			Console.WriteLine($"Time elapsed: {sw.Elapsed.TotalMilliseconds} seconds");
+			Console.WriteLine($"Time elapsed: {(sw.Elapsed.TotalMilliseconds/1000)} seconds");
 			Console.ReadLine();
 		}
 
@@ -160,7 +129,7 @@ namespace Project1
 					numNeedsToChange = i;
 					for (int j = length - 1; j > numNeedsToChange; j--) //Find the number just larger than numNeedsToChange
 					{
-						if (route[numNeedsToChange] < route[j]) //Swap numNeedsToChange with the number just larger than it
+						if (route[numNeedsToChange] < route[j])			//Swap numNeedsToChange with the number just larger than it
 						{
 							Swap(route, numNeedsToChange, j);
 							break;
@@ -197,9 +166,10 @@ namespace Project1
 		}
 
 		/// <summary>
-		/// A variation of Quick Sort that chooses a pivot based on the median of the first, middle, and last numbers. Cutoff of 10
+		/// A variation of Quick Sort that chooses a pivot based on median of the first, middle, and last numbers.
+		/// It has a cutoff of 10, and the user must specify the range to sort, eg. (list, 0, list.Length - 1)
 		/// </summary>
-		/// <param name="list">The list to be sorted.</param>
+		/// <param name="list">The array to be sorted.</param>
 		/// <param name="start">The beginning of the partition to be sorted</param>
 		/// <param name="end">The last index of the range to be sorted</param>
 		private static void QuickMedSort(int[] list, int start, int end)
@@ -244,9 +214,9 @@ namespace Project1
 		}
 
 		/// <summary>
-		/// A variation of the insertion sort algorithm that only sorts a specified range in a list
+		/// A variation of the insertion sort algorithm that only sorts a specified range in an array
 		/// </summary>
-		/// <param name="list">The list to be sorted.</param>
+		/// <param name="list">The array to be sorted.</param>
 		/// <param name="start">The start of the range of elements to be sorted.</param>
 		/// <param name="end">The end of the range, ie the index of the last element to be sorted.</param>
 		private static void InsertionForQuicksort(int[] list, int start, int end)
@@ -266,9 +236,9 @@ namespace Project1
 		}
 
 		/// <summary>
-		/// Swaps two elements in a specified list.
+		/// Swaps two elements in a specified int array.
 		/// </summary>
-		/// <param name="list">The list containing the elements.</param>
+		/// <param name="list">The array containing the elements.</param>
 		/// <param name="x">First value to be swapped.</param>
 		/// <param name="y">Second value to be swapped.</param>
 		private static void Swap(int[] list, int x, int y)
