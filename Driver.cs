@@ -8,13 +8,12 @@
 
 using System;
 using System.Diagnostics;
-using System.Numerics;
 using System.Windows;
 
 namespace Project1
 {
 	/// <summary>
-	/// Driver class which Brute Forces the Travelling Salesman problem from text input.
+	/// Driver class which uses Brute Force to solve the Travelling Salesman problem with text input of 2D points.
 	/// </summary>
 	class Driver
 	{
@@ -61,32 +60,33 @@ namespace Project1
 			for (int i = 0; i < inputSize; i++)										//Find first permutation to start the for loop
 				currentPermutation[i] = i + 1;
 
-			//Find first total distance to compare to within for loop
-			optimalDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);  //From (0,0) to point at index 0
+			//Find first total distance to compare to within permutation for loop
+			optimalDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);				//From (0,0) to point at index 0
 			for (int i = 0; i < inputSize - 1; i++)
 			{
 				optimalDistance += distanceTable[currentPermutation[i], currentPermutation[i + 1]];
 			}
-			optimalDistance += DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], inputPoints[0]);    //From point at last index to (0,0)
+			optimalDistance += DistanceFrom(inputPoints[currentPermutation[inputSize - 1]], inputPoints[0]);	//From point at last index to (0,0)
+
 
 			//Generate permutations, then find the distances between every point (starting and ending at (0,0)) for each one
 			for (int perm = 0; perm < numOfRoutes; perm++)
 			{
 				currentPermutation = NextPermutation(currentPermutation);
 				if (currentPermutation[0] > currentPermutation[inputSize - 1])
-					continue;
+					continue;	//this circumstance means we've already tried an anagram of this route
 				double currentDistance = 0;
 
-				currentDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);  //From (0,0) to point at index 0
+				//Find total distance for the current permutation
+				currentDistance += DistanceFrom(inputPoints[0], inputPoints[currentPermutation[0]]);					//From (0,0) to point at index 0
 				for (int i = 0; i < inputSize - 1; i++)
 				{
 					//Add distance between points at currentPerm[i] and currentPerm[i+1] by accessing table
 					currentDistance += distanceTable[currentPermutation[i], currentPermutation[i + 1]];
 					if (currentDistance > optimalDistance)
-						break;
+						break;	//break if this route is definitely not the shortest one
 				}
-				currentDistance += DistanceFrom(inputPoints[currentPermutation[ inputSize - 1 ]], inputPoints[0]);    //From point at last index to (0,0)
-
+				currentDistance += DistanceFrom(inputPoints[currentPermutation[ inputSize - 1 ]], inputPoints[0]);		//From point at last index to (0,0)
 
 				if (currentDistance < optimalDistance)
 				{
@@ -96,10 +96,10 @@ namespace Project1
 
 			}//end for loop which permutes through every route
 
-			sw.Stop();																//stops stopwatch before writing to the console
 
+			sw.Stop();																		//stops stopwatch before writing to the console
 
-			Console.WriteLine($"\nNumber of routes: {numOfRoutes}");				//output statistics
+			Console.WriteLine($"\nNumber of routes: {numOfRoutes.ToString("N")}");			//output statistics
 			Console.WriteLine($"Shortest route: {optimalDistance.ToString("N2")}");
 
 			string sOptimalRoute = "0 ";
@@ -107,9 +107,9 @@ namespace Project1
 				sOptimalRoute += (i).ToString() + " ";
 			Console.WriteLine($"Optimal route: {sOptimalRoute}");
 
-			Console.WriteLine($"Time elapsed: {(sw.Elapsed.TotalMilliseconds/1000)} seconds");
+			Console.WriteLine($"Time elapsed: {(sw.Elapsed.TotalMilliseconds/1000).ToString("N4")} seconds");
 			Console.ReadLine();
-		}
+		}//end Main
 
 
 		/// <summary>
